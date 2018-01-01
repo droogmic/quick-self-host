@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+
+  openldap:
+    image: osixia/openldap:1.1.11
+    environment:
+      - LDAP_DOMAIN=${LDAP_DOMAIN}
+      - LDAP_ORGANISATION=${LDAP_ORGANISATION}
+      - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD}
+      - LDAP_CONFIG_PASSWORD=${LDAP_CONFIG_PASSWORD}
+      - LDAP_TLS=false
+    volumes:
+      - db:/var/lib/ldap
+      - config:/etc/ldap/slapd.d
+      # - ../../../../data/openldap/db/:/var/lib/ldap
+      # - ../../../../data/openldap/config/:/etc/ldap/slapd.d
+    networks:
+      - default
+      - ldap
+
+  phpldapadmin:
+    build: ./phpldapadmin
+    # image: osixia/phpldapadmin:latest
+    ports:
+      - 9090:80
+    environment:
+      - PHPLDAPADMIN_LDAP_HOSTS=openldap
+      - PHPLDAPADMIN_HTTPS=false
+    depends_on:
+      - openldap
+
+volumes:
+  db:
+  config:
+
+networks:
+  ldap:
+    external:
+      name: ${LDAP_NETWORK}
